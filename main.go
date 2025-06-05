@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -26,21 +27,22 @@ func logHandler(severity string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logMessage(severity, "This is a "+severity+" log")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Logged a " + severity + " message\n"))
+		fmt.Fprintf(w, "Logged a %s message\n", severity)
 	}
 }
 
 func main() {
-	
-	port := "8080"
-
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	logMessage("INFO", "Starting server on port "+port)
 
 	http.HandleFunc("/info", logHandler("INFO"))
 	http.HandleFunc("/warn", logHandler("WARNING"))
 	http.HandleFunc("/error", logHandler("ERROR"))
 	http.HandleFunc("/debug", logHandler("DEBUG"))
 
-	logMessage("INFO", "Server starting on port "+port)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		logMessage("ERROR", "Server failed: "+err.Error())

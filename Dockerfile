@@ -1,17 +1,17 @@
-# Stage 1: Build the Go binary with Go 1.22+
-FROM golang:1.21 as builder
+FROM golang:1.22 AS builder
 
 WORKDIR /app
 COPY . .
 
-# Make sure go.mod is compatible with Go 1.22 (not 1.24)
 RUN go mod tidy
 RUN go build -o server .
 
-# Stage 2: Minimal runtime image (with CA certs and no shell)
-FROM gcr.io/distroless/base-debian11
+# Use full Debian image for debugging
+FROM debian:bullseye-slim
+
+RUN apt-get update && apt-get install -y ca-certificates
 
 COPY --from=builder /app/server /server
 
-# Cloud Run expects it to listen on $PORT
+EXPOSE 8080
 CMD ["/server"]
