@@ -32,10 +32,7 @@ func logHandler(severity string) http.HandlerFunc {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	port := "8080"
 	logMessage("INFO", "Starting server on port "+port)
 
 	http.HandleFunc("/info", logHandler("INFO"))
@@ -48,3 +45,4 @@ func main() {
 		logMessage("ERROR", "Server failed: "+err.Error())
 	}
 }
+
