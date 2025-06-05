@@ -19,14 +19,14 @@ func logMessage(severity, message string) {
 		Message:  message,
 		Time:     time.Now().Format(time.RFC3339),
 	}
-	json.NewEncoder(os.Stdout).Encode(entry)
+	_ = json.NewEncoder(os.Stdout).Encode(entry)
 }
 
 func logHandler(severity string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logMessage(severity, "This is a "+severity+" log")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Logged a " + severity + " message"))
+		w.Write([]byte("Logged a " + severity + " message\n"))
 	}
 }
 
@@ -36,11 +36,14 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/error", logHandler("ERROR"))
-	http.HandleFunc("/warn", logHandler("WARNING"))
 	http.HandleFunc("/info", logHandler("INFO"))
+	http.HandleFunc("/warn", logHandler("WARNING"))
+	http.HandleFunc("/error", logHandler("ERROR"))
 	http.HandleFunc("/debug", logHandler("DEBUG"))
 
 	logMessage("INFO", "Server starting on port "+port)
-	http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		logMessage("ERROR", "Server failed: "+err.Error())
+	}
 }
